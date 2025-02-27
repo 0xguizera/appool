@@ -1,17 +1,13 @@
-'use client';
+import { ListaPosicoes } from '@/components/posicoes/ListaPosicoes';
+import { Layout } from '@/components/layout/Layout';
+import { AuthProvider } from '@/hooks/useAuth';
 
-import { Box, Container, VStack, Heading } from '@chakra-ui/react';
-import { RegisterForm } from '@/components/auth/RegisterForm';
-
-export default function RegisterPage() {
+export default function Home() {
   return (
-    <Container maxW="container.sm" py={10}>
-      <VStack spacing={8}>
-        <Heading>Registro</Heading>
-        <Box w="full">
-          <RegisterForm />
-        </Box>
-      </VStack>
-    </Container>
+    <AuthProvider>
+      <Layout>
+        <ListaPosicoes />
+      </Layout>
+    </AuthProvider>
   );
-} 
+}
