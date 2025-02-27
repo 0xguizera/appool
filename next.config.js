@@ -4,6 +4,15 @@ const nextConfig = {
   swcMinify: true,
   images: {
     domains: ['firebasestorage.googleapis.com']
+  },
+  experimental: {
+    optimizeCss: true,
+    modern: true
+  },
+  distDir: '.next',
+  pageExtensions: ['ts', 'tsx', 'js', 'jsx'],
+  webpack(config) {
+    return config;
   }
 };
 
