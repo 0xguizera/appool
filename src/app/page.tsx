@@ -1,17 +1,13 @@
-import { Providers } from './providers';
+import { ListaPosicoes } from '@/components/posicoes/ListaPosicoes';
+import { Layout } from '@/components/layout/Layout';
+import { AuthProvider } from '@/hooks/useAuth';
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function Home() {
   return (
-    <html lang="pt-BR">
-      <body>
-        <Providers>
-          {children}
-        </Providers>
-      </body>
-    </html>
+    <AuthProvider>
+      <Layout>
+        <ListaPosicoes />
+      </Layout>
+    </AuthProvider>
   );
-} 
+}
