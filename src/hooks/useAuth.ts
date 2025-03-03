@@ -2,6 +2,8 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import { auth, db } from '@/config/firebase';
 import { User } from '@/types';
 import { showToast } from '@/utils/toast';
+import { collection, doc, getDoc } from 'firebase/firestore';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 
 interface AuthContextType {
   user: User | null;
@@ -11,7 +13,13 @@ interface AuthContextType {
   loading: boolean;
 }
 
-const AuthContext = createContext<AuthContextType>({} as AuthContextType);
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  login: async () => {},
+  logout: async () => {},
+  register: async () => {},
+  loading: false
+});
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -20,8 +28,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
       if (firebaseUser) {
-        // Buscar dados adicionais do usuário no Firestore
-        const userDoc = await db.collection('users').doc(firebaseUser.uid).get();
+        const userDocRef = doc(collection(db, 'users'), firebaseUser.uid);
+        const userDoc = await getDoc(userDocRef);
         setUser({
           uid: firebaseUser.uid,
           userId: userDoc.data()?.userId || ''
@@ -37,8 +45,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (userId: string, password: string) => {
     try {
-      // Implementar lógica de login
+      const userCredential = await signInWithEmailAndPassword(auth, `${userId}@app.com`, password);
       showToast.success('Login realizado com sucesso!');
+      return userCredential;
     } catch (error) {
       showToast.error('Erro ao fazer login');
       throw error;
@@ -46,18 +55,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const register = async (userId: string, password: string) => {
-    // Implementar lógica de registro
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, `${userId}@app.com`, password);
+      await doc(collection(db, 'users'), userCredential.user.uid).set({
+        userId,
+        createdAt: new Date()
+      });
+      showToast.success('Registro realizado com sucesso!');
+    } catch (error) {
+      showToast.error('Erro ao fazer registro');
+      throw error;
+    }
   };
 
   const logout = async () => {
-    // Implementar lógica de logout
+    try {
+      await signOut(auth);
+      showToast.success('Logout realizado com sucesso!');
+    } catch (error) {
+      showToast.error('Erro ao fazer logout');
+      throw error;
+    }
+  };
+
+  const value = {
+    user,
+    login,
+    logout,
+    register,
+    loading
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, register, loading }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-export const useAuth = () => useContext(AuthContext); 
+export const useAuth = () => useContext(AuthContext);
